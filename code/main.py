@@ -7,10 +7,10 @@ import pandas as pd
 from io import BytesIO
 import uuid  # for generating dataset_id
 
-from llm_review_agent import router as llm_review_router
-from data_cleaning_agent import router as cleaning_router
-from kpi_agent_app import router as kpi_router
-from chart_generator import router as chart_router
+from .llm_review_agent import router as llm_review_router
+from .data_cleaning_agent import router as cleaning_router
+from .kpi_agent_app import router as kpi_router
+from .chart_generator import router as chart_router
 
 app = FastAPI()
 
