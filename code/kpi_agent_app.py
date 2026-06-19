@@ -9,6 +9,8 @@ import pandas as pd
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from typing import Optional, List
+
 from crewai import Agent, Task, Crew, LLM
 from crewai.tools import tool
 from langchain_openai import OpenAIEmbeddings
