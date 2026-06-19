@@ -13,6 +13,7 @@ from crewai import Agent, Task, Crew, LLM
 from crewai.tools import tool
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
+from dotenv import load_dotenv
 from langchain_core.documents import Document
 
 
