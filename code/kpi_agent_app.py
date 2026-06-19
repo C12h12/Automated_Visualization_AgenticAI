@@ -41,8 +41,7 @@ load_dotenv()
 # --------------------------------------------------
 # Paths
 # --------------------------------------------------
-CLEANED_DATASET_DIR = "cleaned_datasets"
-KPI_RAG_CSV = KPI_RAG_CSV = r"C:\Users\shrey\OneDrive\Desktop\Projects\final_year_project\Data-Visualizing-AI\BTechPro\Rag_data\BE project KPI data - Sheet1.csv"
+CLEANED_DATASET_DIR = os.path.join("data", "cleaned_datasets")
 KPI_VECTOR_DIR = "kpi_rag_index"
 
 
@@ -146,25 +145,9 @@ def build_or_load_kpi_vectorstore():
             allow_dangerous_deserialization=True
         )
 
-    df = pd.read_csv(KPI_RAG_CSV)
-    documents = []
-
-    for _, row in df.iterrows():
-        text = (
-            f"Dataset: {row['dataset_name']}\n"
-            f"KPI Name: {row['kpi']}\n"
-            f"Is KPI: {row['is_kpi']}\n"
-            f"Data Type: {row['dtype']}\n"
-            f"Domain: {row['domain']}\n"
-            f"Description: {row['description']}"
-        )
-        documents.append(Document(page_content=text))
-
-    vectorstore = FAISS.from_documents(documents, embeddings)
-    vectorstore.save_local(KPI_VECTOR_DIR)
-    print(f"✅ KPI embeddings saved to directory: {KPI_VECTOR_DIR}")
-
-    return vectorstore
+    # Index already built; simply load existing vectorstore.
+    # If the directory does not exist, raise an error.
+    raise FileNotFoundError(f"KPI vector store not found at {KPI_VECTOR_DIR}. Please ensure the index is present.")
 
 
 kpi_vectorstore = build_or_load_kpi_vectorstore()
@@ -221,40 +204,9 @@ def build_or_load_kpi_vectorstore():
             allow_dangerous_deserialization=True
         )
 
-    df = pd.read_csv(KPI_RAG_CSV)
-    documents = []
-
-    for _, row in df.iterrows():
-        semantic_text = (
-            f"Dataset: {row['dataset_name']}\n"
-            f"Column: {row['kpi']}\n"
-            f"Description: {row['description']}\n"
-            f"Domain: {row['domain']}\n"
-            f"Data Type: {row['dtype']}\n"
-            f"Label: {'KPI' if row['is_kpi'] == 1 else 'Non-KPI'}"
-        )
-
-        metadata = {
-            "dataset_name": row["dataset_name"],
-            "column": row["kpi"],
-            "domain": row["domain"],
-            "dtype": row["dtype"],
-            "is_kpi": int(row["is_kpi"])
-        }
-
-        documents.append(
-            Document(
-                page_content=semantic_text,
-                metadata=metadata
-            )
-        )
-
-    vectorstore = FAISS.from_documents(documents, embeddings)
-    vectorstore.save_local(KPI_VECTOR_DIR)
-
-    print(f"✅ KPI RAG index rebuilt and saved at: {KPI_VECTOR_DIR}")
-    return vectorstore
-
+    # Index already built; load existing vectorstore.
+    # If the directory does not exist, raise an informative error.
+    raise FileNotFoundError(f"KPI vector store not found at {KPI_VECTOR_DIR}. Ensure the pre-built index is available.")
 
 kpi_vectorstore = build_or_load_kpi_vectorstore()
 
