@@ -1,9 +1,9 @@
 import asyncio
 import nest_asyncio
 import os
-import json
-from dotenv import load_dotenv
-from typing import Optional, List
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent
 
 import pandas as pd
 from fastapi import APIRouter
@@ -41,8 +41,8 @@ load_dotenv()
 # --------------------------------------------------
 # Paths
 # --------------------------------------------------
-CLEANED_DATASET_DIR = os.path.join("data", "cleaned_datasets")
-KPI_VECTOR_DIR = "kpi_rag_index"
+CLEANED_DATASET_DIR = BASE_DIR / "cleaned_datasets"
+KPI_VECTOR_DIR = BASE_DIR / "kpi_rag_index"
 
 
 # --------------------------------------------------

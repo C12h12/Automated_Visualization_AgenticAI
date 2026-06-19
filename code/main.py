@@ -6,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 from io import BytesIO
 import uuid  # for generating dataset_id
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent
 
 from .llm_review_agent import router as llm_review_router
 from .data_cleaning_agent import router as cleaning_router
@@ -23,7 +26,11 @@ app.add_middleware(
 )
 
 # Static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount(
+    "/static",
+    StaticFiles(directory=BASE_DIR / "static"),
+    name="static",
+)
 
 # Include LLM router
 app.include_router(llm_review_router)
@@ -39,7 +46,7 @@ app.include_router(chart_router)
 # ------------------------------
 @app.get("/", response_class=HTMLResponse)
 def serve_home():
-    with open("static/final.html", "r", encoding="utf-8") as f:
+    with open(BASE_DIR / "static" / "final.html", "r", encoding="utf-8") as f:
         return f.read()
 
 # ------------------------------
@@ -47,27 +54,27 @@ def serve_home():
 # ------------------------------
 @app.get("/index", response_class=HTMLResponse)
 def serve_index():
-    with open("html/index.html", "r", encoding="utf-8") as f:
+    with open(BASE_DIR / "html" / "index.html", "r", encoding="utf-8") as f:
         return f.read()
     
 @app.get("/metadata", response_class=HTMLResponse)
 def serve_metadata():
-    with open("html/metadata.html", "r", encoding="utf-8") as f:
+    with open(BASE_DIR / "html" / "metadata.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/review", response_class=HTMLResponse)
 def serve_review():
-    with open("html/review.html", "r", encoding="utf-8") as f:
+    with open(BASE_DIR / "html" / "review.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/kpi", response_class=HTMLResponse)
 def serve_kpi_ui():
-    with open("html/kpi_ui.html", "r", encoding="utf-8") as f:
+    with open(BASE_DIR / "html" / "kpi_ui.html", "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def serve_dashboard():
-    with open("html/dashboard.html", "r", encoding="utf-8") as f:
+    with open(BASE_DIR / "html" / "dashboard.html", "r", encoding="utf-8") as f:
         return f.read()
 
 # ------------------------------
