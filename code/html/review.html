@@ -488,7 +488,7 @@
         return;
       }
 
-      const metaRes = await fetch(`http://127.0.0.1:8000/cleaning/metadata/${datasetId}`);
+      const metaRes = await fetch(`/cleaning/metadata/${datasetId}`);
       if (!metaRes.ok) {
         alert("Failed to fetch metadata.");
         return;
