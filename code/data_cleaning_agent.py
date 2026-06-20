@@ -20,10 +20,14 @@ router = APIRouter(prefix="/cleaning", tags=["Data Cleaning Agent"])
 # =================================================
 DATASETS = {}  # in-memory dataset store
 
-UPLOAD_DIR = "uploaded_datasets"
-CLEANED_DATA_DIR = "cleaned_datasets"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs(CLEANED_DATA_DIR, exist_ok=True)
+from pathlib import Path
+BASE_DIR = Path(__file__).parent
+# Use the project root (sibling to code) for dataset directories
+ROOT_DIR = BASE_DIR.parent
+UPLOAD_DIR = ROOT_DIR / "uploaded_datasets"
+CLEANED_DATA_DIR = ROOT_DIR / "cleaned_datasets"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+CLEANED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # =================================================
 # Schemas
@@ -178,7 +182,7 @@ async def upload_dataset(file: UploadFile = File(...)):
     df = pd.read_csv(io.BytesIO(await file.read()))
     dataset_id = str(uuid.uuid4())
 
-    file_path = os.path.join(UPLOAD_DIR, f"{dataset_id}.csv")
+    file_path = UPLOAD_DIR / f"{dataset_id}.csv"
     df.to_csv(file_path, index=False)
 
     return {
@@ -192,9 +196,9 @@ async def upload_dataset(file: UploadFile = File(...)):
 # =================================================
 @router.get("/metadata/{dataset_id}")
 def get_metadata(dataset_id: str):
-    file_path = f"{UPLOAD_DIR}/{dataset_id}.csv"
+    file_path = UPLOAD_DIR / f"{dataset_id}.csv"
 
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="Dataset not found")
 
     df = pd.read_csv(file_path)
@@ -225,9 +229,9 @@ def get_metadata(dataset_id: str):
 # =================================================
 @router.post("/execute-cleaning", status_code=status.HTTP_204_NO_CONTENT)
 def execute_cleaning(request: CleaningRequest):
-    file_path = f"{UPLOAD_DIR}/{request.dataset_id}.csv"
+    file_path = UPLOAD_DIR / f"{request.dataset_id}.csv"
 
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="Dataset file not found")
 
     df = pd.read_csv(file_path)
@@ -240,6 +244,6 @@ def execute_cleaning(request: CleaningRequest):
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{request.dataset_id}_{run_id}_{timestamp}.csv"
-    cleaned_df.to_csv(os.path.join(CLEANED_DATA_DIR, filename), index=False)
+    cleaned_df.to_csv(CLEANED_DATA_DIR / filename, index=False)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

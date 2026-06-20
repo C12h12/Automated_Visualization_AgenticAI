@@ -6,6 +6,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent
 
 import pandas as pd
+import json
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -44,7 +45,7 @@ load_dotenv()
 # --------------------------------------------------
 # Paths
 # --------------------------------------------------
-CLEANED_DATASET_DIR = BASE_DIR / "cleaned_datasets"
+CLEANED_DATASET_DIR = BASE_DIR.parent / "cleaned_datasets"
 KPI_VECTOR_DIR = BASE_DIR / "kpi_rag_index"
 
 
@@ -134,82 +135,29 @@ def load_data_summary(input_text: str = "") -> str:
 
 
 
-"""
-# --------------------------------------------------
-# RAG Vector Store
-# --------------------------------------------------
-def build_or_load_kpi_vectorstore():
-    embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
-
-    if os.path.exists(KPI_VECTOR_DIR):
-        return FAISS.load_local(
-            KPI_VECTOR_DIR,
-            embeddings,
-            allow_dangerous_deserialization=True
-        )
-
-    # Index already built; simply load existing vectorstore.
-    # If the directory does not exist, raise an error.
-    raise FileNotFoundError(f"KPI vector store not found at {KPI_VECTOR_DIR}. Please ensure the index is present.")
-
-
-kpi_vectorstore = build_or_load_kpi_vectorstore()
-
-# --------------------------------------------------
-# TOOL 2: KPI RAG Retrieval
-# --------------------------------------------------
-def retrieve_kpi_knowledge(domain=None, columns=None, query=None):
-    if domain or columns:
-        domain = domain or ""
-        if isinstance(columns, list):
-            columns_text = ", ".join(columns)
-        else:
-            columns_text = str(columns)
-
-        search_query = (
-            f"Domain: {domain}. "
-            f"Columns: {columns_text}. "
-            f"Suggest KPI patterns using single, dual, and multi-column strategies."
-        )
-    elif query:
-        search_query = query
-    else:
-        search_query = "General KPI patterns"
-
-    results = kpi_vectorstore.similarity_search(search_query, k=5)
-    context = "\n\n".join([doc.page_content for doc in results])
-
-    return (
-        "=== KPI KNOWLEDGE BASE CONTEXT (RAG) ===\n"
-        "Use these examples as inspiration:\n\n"
-        f"{context}"
-    )
-
-
-KPIKnowledgeTool = Tool(
-    name="retrieve_kpi_knowledge",
-    func=retrieve_kpi_knowledge,
-    description="Retrieves relevant KPI patterns from the KPI knowledge base."
-)
-"""
 # --------------------------------------------------
 # RAG Vector Store (WITH METADATA)
 # --------------------------------------------------
 def build_or_load_kpi_vectorstore():
-    embeddings = OpenAIEmbeddings(
-        openai_api_key=os.getenv("OPENAI_API_KEY")
-    )
-
-    if os.path.exists(KPI_VECTOR_DIR):
-        return FAISS.load_local(
-            KPI_VECTOR_DIR,
-            embeddings,
-            allow_dangerous_deserialization=True
-        )
-
-    # Index already built; load existing vectorstore.
-    # If the directory does not exist, raise an informative error.
-    raise FileNotFoundError(f"KPI vector store not found at {KPI_VECTOR_DIR}. Ensure the pre-built index is available.")
+    """Load the FAISS vector store if it exists, otherwise create an empty one.
+    Handles MemoryError and missing index gracefully, avoiding crashes.
+    """
+    embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
+    try:
+        if os.path.exists(KPI_VECTOR_DIR):
+            return FAISS.load_local(
+                KPI_VECTOR_DIR,
+                embeddings,
+                allow_dangerous_deserialization=True,
+            )
+        else:
+            raise FileNotFoundError(f"KPI vector store not found at {KPI_VECTOR_DIR}")
+    except (MemoryError, FileNotFoundError, Exception) as e:
+        print(f"[WARN] Could not load KPI vectorstore ({e}); creating empty store.")
+        dummy_docs = [
+            Document(page_content="Placeholder for empty KPI knowledge base", metadata={"is_kpi": 0, "domain": "none"})
+        ]
+        return FAISS.from_documents(dummy_docs, embeddings)
 
 kpi_vectorstore = build_or_load_kpi_vectorstore()
 

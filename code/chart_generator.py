@@ -26,16 +26,21 @@ router = APIRouter(
 )
 
 
-STATIC_DIR = "static"
-CLEANED_DATASET_DIR = "cleaned_datasets"
-PDF_DIR = "pdfs"
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent
+ROOT_DIR = BASE_DIR.parent
+
+STATIC_DIR = BASE_DIR / "static"
+CLEANED_DATASET_DIR = ROOT_DIR / "cleaned_datasets"
+PDF_DIR = ROOT_DIR / "pdfs"
 
 IMAGE_TTL_SECONDS = 300
 MAX_CATEGORIES = 12
 
-os.makedirs(STATIC_DIR, exist_ok=True)
-os.makedirs(CLEANED_DATASET_DIR, exist_ok=True)
-os.makedirs(PDF_DIR, exist_ok=True)
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+CLEANED_DATASET_DIR.mkdir(parents=True, exist_ok=True)
+PDF_DIR.mkdir(parents=True, exist_ok=True)
 
 
 sns.set_theme(style="darkgrid")
